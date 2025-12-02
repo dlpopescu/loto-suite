@@ -1,0 +1,43 @@
+package models
+
+var Games = []*Game{
+	{
+		Id:                      "649",
+		DisplayName:             "LOTO 6/49",
+		Url:                     "https://www.loto.ro/loto-new/newLotoSiteNexioFinalVersion/web/app2.php/jocuri/649_si_noroc/rezultate_extragere.html",
+		LuckyNumberDigitCount:   7,
+		LuckyNumberMinMatchLen:  3,
+		VariantsMaxCount:        3,
+		VariantMinNumbersCount:  6,
+		VariantDrawNumbersCount: 6,
+		VariantMinNumber:        1,
+		VariantMaxNumber:        49,
+		LuckyNumberName:         "NOROC",
+	},
+	{
+		Id:                      "540",
+		DisplayName:             "SUPER LOTO 5/40",
+		Url:                     "https://www.loto.ro/loto-new/newLotoSiteNexioFinalVersion/web/app2.php/jocuri/540_si_super_noroc/rezultate_extrageri.html",
+		LuckyNumberDigitCount:   6,
+		LuckyNumberMinMatchLen:  2,
+		VariantsMaxCount:        4,
+		VariantMinNumbersCount:  5,
+		VariantDrawNumbersCount: 6,
+		VariantMinNumber:        1,
+		VariantMaxNumber:        40,
+		LuckyNumberName:         "SUPER NOROC",
+	},
+	{
+		Id:                      "joker",
+		DisplayName:             "JOKER",
+		Url:                     "https://www.loto.ro/loto-new/newLotoSiteNexioFinalVersion/web/app2.php/jocuri/joker_si_noroc_plus/rezultate_extrageri.html",
+		LuckyNumberDigitCount:   6,
+		LuckyNumberMinMatchLen:  2,
+		VariantsMaxCount:        2,
+		VariantMinNumbersCount:  5,
+		VariantDrawNumbersCount: 6,
+		VariantMinNumber:        1,
+		VariantMaxNumber:        45,
+		LuckyNumberName:         "NOROC PLUS",
+	},
+}
