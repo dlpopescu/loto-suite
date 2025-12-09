@@ -9,7 +9,7 @@ import (
 func CheckBilet540(checkResult *models.CheckResult) {
 	game, _ := GetGameById("540")
 	VerificareNoroc540(checkResult.LuckyNumber, checkResult.DrawResult.LuckyNumber, game.LuckyNumberDigitCount, game.LuckyNumberMinMatchLen)
-	varianteJucateLen := len(checkResult.Numbers)
+	varianteJucateLen := len(checkResult.VarianteJucate)
 
 	if varianteJucateLen == 0 {
 		variantaJucata := models.Variant{
@@ -18,20 +18,24 @@ func CheckBilet540(checkResult *models.CheckResult) {
 			WinsSpecial: getDefaultCategoriiCastigVariante540(),
 		}
 
-		checkResult.Numbers = append(checkResult.Numbers, variantaJucata)
+		checkResult.VarianteJucate = append(checkResult.VarianteJucate, variantaJucata)
 	} else {
-		for i := range checkResult.Numbers {
-			for j := range checkResult.Numbers[i].Numbers {
-				checkResult.Numbers[i].Numbers[j].IsWinner = false
+		for i := range checkResult.VarianteJucate {
+			for j := range checkResult.VarianteJucate[i].Numbers {
+				checkResult.VarianteJucate[i].Numbers[j].IsWinner = false
 			}
 
-			VerificareVarianta540(&checkResult.Numbers[i], checkResult.DrawResult.VariantRegular, game.VariantMinNumbersCount, game.VariantDrawNumbersCount)
-			VerificareVarianta540(&checkResult.Numbers[i], checkResult.DrawResult.VariantSpecial, game.VariantMinNumbersCount, game.VariantDrawNumbersCount)
+			VerificareVarianta540(&checkResult.VarianteJucate[i], checkResult.DrawResult.VariantRegular, game.VariantMinNumbersCount, game.VariantDrawNumbersCount)
+			VerificareVarianta540(&checkResult.VarianteJucate[i], checkResult.DrawResult.VariantSpecial, game.VariantMinNumbersCount, game.VariantDrawNumbersCount)
 		}
 	}
 }
 
 func VerificareVarianta540(variantaJucata *models.Variant, variantaExtrasa *models.Variant, minNumerePerVariantaJucata int, numerePerVariantaExtrasa int) {
+	if variantaJucata == nil || variantaExtrasa == nil {
+		return
+	}
+
 	isValidTicket := len(variantaJucata.Numbers) >= minNumerePerVariantaJucata
 	isValidDraw := variantaExtrasa.Id != -1 && len(variantaExtrasa.Numbers) == numerePerVariantaExtrasa
 

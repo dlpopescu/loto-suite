@@ -1,0 +1,6 @@
+{
+  "files.associations": {
+    "Makefile.backend": "makefile",
+    "Makefile.redirect": "makefile"
+  }
+}

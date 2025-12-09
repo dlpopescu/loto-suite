@@ -1,11 +1,13 @@
-backend/cache/**/*.json
-backend/cache/*.json
-backend/logging/**/*.log
-backend/logging/logs/*.log
+backend/cache/storage/
 backend/logging/logs/
 *.DS_Store
 __pycache__/
 *.out
+
+# Go binaries
+/app
+/redirect
+
 # Miscellaneous
 *.class
 *.log
@@ -19,6 +21,7 @@ __pycache__/
 .svn/
 .swiftpm/
 migrate_working_dir/
+*.pem
 
 # IntelliJ related
 *.iml

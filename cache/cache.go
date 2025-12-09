@@ -108,7 +108,7 @@ func (c *cache) saveToDisk(key string, entry *cacheEntry) {
 	filePath := c.getCacheFilePath(key)
 	data, err := json.MarshalIndent(entry, "", "  ")
 	if err != nil {
-		logging.ErrorBe(err.Error())
+		logError(err)
 		return
 	}
 
@@ -118,7 +118,7 @@ func (c *cache) saveToDisk(key string, entry *cacheEntry) {
 func (c *cache) loadFromDisk() {
 	files, err := os.ReadDir(c.cacheDir)
 	if err != nil {
-		logging.ErrorBe(err.Error())
+		logError(err)
 		return
 	}
 
@@ -134,14 +134,14 @@ func (c *cache) loadEntryFromDisk(key string) {
 	filePath := c.getCacheFilePath(key)
 	data, err := os.ReadFile(filePath)
 	if err != nil {
-		logging.ErrorBe(err.Error())
+		logError(err)
 		return
 	}
 
 	var entry cacheEntry
 	err = json.Unmarshal(data, &entry)
 	if err != nil {
-		logging.ErrorBe(err.Error())
+		logError(err)
 		os.Remove(filePath)
 		return
 	}
@@ -166,7 +166,7 @@ func (c *cache) clear() {
 
 	files, err := os.ReadDir(c.cacheDir)
 	if err != nil {
-		logging.ErrorBe(err.Error())
+		logError(err)
 		return
 	}
 
@@ -175,4 +175,8 @@ func (c *cache) clear() {
 			os.Remove(filepath.Join(c.cacheDir, file.Name()))
 		}
 	}
+}
+
+func logError(err error) {
+	logging.Error("cache", err, "")
 }

@@ -2,18 +2,19 @@ package models
 
 type CheckRequest struct {
 	GameId      string    `json:"game_id"`
-	Variants    []Variant `json:"variante"`
 	LuckyNumber string    `json:"noroc,omitempty"`
 	Date        string    `json:"date"`
 	UseCache    bool      `json:"use_cache"`
+	Variants    []Variant `json:"variante"`
 }
 
 type CheckResult struct {
-	DrawResult                  *DrawResult    `json:"draw_result"`
-	Numbers                     []Variant      `json:"variante_jucate"`
+	IsCastigator                bool           `json:"is_castigator"`
+	DrawResult                  *DrawResult    `json:"-"`
+	VarianteJucate              []Variant      `json:"variante_jucate"`
 	LuckyNumber                 *LuckyNumber   `json:"noroc_jucat,omitempty"`
-	WinsCumulatedVariantRegular []WinCumulated `json:"castiguri_varianta"`
-	WinsCumulatedVariantSpecial []WinCumulated `json:"castiguri_varianta_speciala"`
-	WinsCumulatedLuckyNumber    []WinCumulated `json:"castiguri_noroc"`
+	WinsCumulatedVariantRegular []WinCumulated `json:"castiguri_varianta,omitempty"`
+	WinsCumulatedVariantSpecial []WinCumulated `json:"castiguri_varianta_speciala,omitempty"`
+	WinsCumulatedLuckyNumber    []WinCumulated `json:"castiguri_noroc,omitempty"`
 	WinsTotal                   float64        `json:"valoare_totala_castig"`
 }

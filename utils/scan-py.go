@@ -12,20 +12,20 @@ import (
 )
 
 func ScanareBilet(gameId string, imageData []byte) (*models.ScanResult, error) {
-	logging.InfoBe("Starting ticket scan")
+	logging.Info("BE", "Starting ticket scan")
 
 	tempDir := os.TempDir()
 	tempFile := filepath.Join(tempDir, fmt.Sprintf("ticket_%d.jpg", time.Now().UnixNano()))
 
 	if err := os.WriteFile(tempFile, imageData, 0644); err != nil {
-		logging.ErrorBe(fmt.Sprintf("Failed to write temp file: %v", err))
+		logging.Error("scan", err, "")
 		return nil, fmt.Errorf("failed to write temp file: %w", err)
 	}
 	defer os.Remove(tempFile)
 
 	scanDir, err := getScannerScriptsDir()
 	if err != nil {
-		logging.ErrorBe(fmt.Sprintf("Failed to find scanner scripts directory: %v", err))
+		logging.Error("scan", err, "")
 		return nil, err
 	}
 
@@ -33,18 +33,16 @@ func ScanareBilet(gameId string, imageData []byte) (*models.ScanResult, error) {
 	cmd := exec.Command(getPythonCommand(), scannerPath, tempFile, "--json")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		errMsg := fmt.Sprintf("Scanner failed: %v, output: %s", err, string(output))
-		logging.ErrorBe(errMsg)
-		return nil, fmt.Errorf("scanner failed: %w, output: %s", err, string(output))
+		logging.Error("scan", err, "")
+		return nil, err
 	}
 
-	logging.DebugBe(fmt.Sprintf("Scanner output (%d bytes): %s", len(output), string(output)))
+	// logging.Debug("BE", fmt.Sprintf("Scanner output (%d bytes): %s", len(output), string(output)), logging.GetCallerInfoEx())
 
 	var result models.ScanResult
 	if err := json.Unmarshal(output, &result); err != nil {
-		errMsg := fmt.Sprintf("Failed to parse scanner output: %v, raw output: %s", err, string(output))
-		logging.ErrorBe(errMsg)
-		return nil, fmt.Errorf("failed to parse scanner output: %w, raw output: %s", err, string(output))
+		logging.Error("scan", err, "")
+		return nil, err
 	}
 
 	// logging.InfoBe(fmt.Sprintf("Parsed result: game_id=%s, variants=%d", result.GameId, len(result.Variante)))

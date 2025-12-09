@@ -27,16 +27,16 @@ func scrapeDrawResults(game *models.Game, month string, year string) ([]models.D
 
 	resp, err := doHttpRequest(ctx, "POST", game.Url, nil, form)
 	if err != nil {
-		logging.ErrorBe(fmt.Sprintf("Failed to POST: game=%s: %v", game.Id, err))
+		logging.Error("scrape", err, "")
 		fmt.Println(err)
-		return nil, fmt.Errorf("failed to POST: %v", err)
+		return nil, err
 	}
 
 	defer resp.Body.Close()
 
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
-		logging.ErrorBe(fmt.Sprintf("Failed to parse HTML: game=%s: %v", game.Id, err))
+		logging.Error("scrape", err, "")
 		fmt.Println(err)
 		return nil, fmt.Errorf("failed to parse HTML: %v", err)
 	}
@@ -49,7 +49,7 @@ func scrapeDrawResults(game *models.Game, month string, year string) ([]models.D
 		scrapedDate, err := time.Parse(generics.ScrapeDateFormat, scrapedDateStr)
 
 		if err != nil {
-			logging.ErrorBe(fmt.Sprintf("Failed to parse date '%s' for game=%s: %v", scrapedDateStr, game.Id, err))
+			logging.Error("scrape", err, "")
 			return
 		}
 
@@ -112,7 +112,7 @@ func extractCategoriiCastigVariante(div *goquery.Selection) []models.WinCategory
 
 	table := div.Find(".results-table")
 	if table.Length() == 0 {
-		logging.InfoBe("No .results-table found in div")
+		logging.Info("scrape", "No .results-table found in div")
 		return categoriiCastig
 	}
 
@@ -155,7 +155,7 @@ func extractCategoriiCastigNoroc(div *goquery.Selection, gameId string) []models
 
 	table := div.Find(".results-table")
 	if table.Length() == 0 {
-		logging.InfoBe("No .results-table found in div")
+		logging.Info("scrape", "No .results-table found in div")
 		return categoriiCastig
 	}
 

@@ -1,0 +1,12 @@
+[Unit]
+Description=HTTP → HTTPS Redirect
+After=network.target
+
+[Service]
+ExecStart=/home/ubuntu/redirect
+WorkingDirectory=/home/ubuntu
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target

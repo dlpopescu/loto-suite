@@ -5,10 +5,20 @@ import (
 	"loto-suite/backend/generics"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"sync"
 	"time"
+)
+
+type LogType string
+
+const (
+	LogTypeDebug LogType = "DEBUG"
+	LogTypeInfo  LogType = "INFO"
+	LogTypeWarn  LogType = "WARN"
+	LogTypeError LogType = "ERROR"
+	LogTypeFatal LogType = "FATAL"
+	LogTypeTrace LogType = "TRACE"
 )
 
 type Logger struct {
@@ -16,31 +26,23 @@ type Logger struct {
 	mutex sync.Mutex
 }
 
-func (l *Logger) Debug(source string, message string, callerInfo string) {
-	l.Write(source, LogTypeDebug, message, callerInfo, "na")
+func (l *Logger) debug(source string, message string) {
+	l.write(source, LogTypeDebug, message, "", "NA")
 }
 
-func (l *Logger) Info(source string, message string, callerInfo string) {
-	l.Write(source, LogTypeInfo, message, callerInfo, "na")
+func (l *Logger) info(source string, message string) {
+	l.write(source, LogTypeInfo, message, "", "NA")
 }
 
-func (l *Logger) Warn(source string, message string, callerInfo string) {
-	l.Write(source, LogTypeWarn, message, callerInfo, "na")
+func (l *Logger) warn(source string, message string) {
+	l.write(source, LogTypeWarn, message, "", "NA")
 }
 
-func (l *Logger) Error(source string, message string, callerInfo string) {
-	l.Write(source, LogTypeError, message, callerInfo, "na")
+func (l *Logger) error(source string, message string, callerInfo string) {
+	l.write(source, LogTypeError, message, callerInfo, "NA")
 }
 
-func (l *Logger) Fatal(source string, message string, callerInfo string, stackTrace string) {
-	if source == "BE" && strings.TrimSpace(stackTrace) == "" {
-		stackTrace = l.getStackTrace()
-	}
-
-	l.Write(source, LogTypeFatal, message, callerInfo, stackTrace)
-}
-
-func (l *Logger) Write(source string, logType LogType, message string, callerInfo string, stackTrace string) {
+func (l *Logger) write(source string, logType LogType, message string, callerInfo string, stackTrace string) {
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
 
@@ -71,16 +73,10 @@ func (l *Logger) Write(source string, logType LogType, message string, callerInf
 	}
 }
 
-func (l *Logger) getStackTrace() string {
-	buf := make([]byte, 4096)
-	n := runtime.Stack(buf, false)
-	return string(buf[:n])
-}
-
 func handleEmptyValue(value string) string {
 	value = strings.TrimSpace(value)
 	if value == "" {
-		return "na"
+		return "NA"
 	}
 
 	return value

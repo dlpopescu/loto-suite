@@ -1,0 +1,15 @@
+[Unit]
+Description=loto-backend Service
+After=network.target
+
+[Service]
+ExecStart=/home/ubuntu/app
+Restart=always
+RestartSec=5
+User=root
+WorkingDirectory=/home/ubuntu
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

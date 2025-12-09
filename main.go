@@ -3,19 +3,16 @@ package main
 import (
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
+	"errors"
 	"io"
 	"log"
 	"loto-suite/backend/generics"
 	"loto-suite/backend/logging"
 	"loto-suite/backend/models"
 	"loto-suite/backend/utils"
-	"net"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
-	"time"
 )
 
 type Server struct {
@@ -23,53 +20,19 @@ type Server struct {
 }
 
 func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8888"
-	}
+	srv := NewServer()
 
-	server := NewServer()
+	log.Println("Starting HTTPS server on :443...")
+	err := http.ListenAndServeTLS(
+		":443",
+		"/etc/letsencrypt/live/dlpopescu.ro/fullchain.pem",
+		"/etc/letsencrypt/live/dlpopescu.ro/privkey.pem",
+		srv.mux,
+	)
 
-	addr := fmt.Sprintf(":%s", port)
-
-	go func() {
-		time.Sleep(100 * time.Millisecond)
-		ips, err := getLocalIPs()
-		if err != nil {
-			logging.InfoBe(fmt.Sprintf("Server ready at http://localhost%s (could not get local IPs)", addr))
-		} else {
-			for _, ip := range ips {
-				logging.InfoBe(fmt.Sprintf("Server ready at http://%s%s", ip, addr))
-			}
-			// logging.InfoBe("If you want to access this server from outside your network, set up port forwarding on your router for this port, and allow it through your firewall.")
-		}
-	}()
-	// ---
-	// To make this server available from anywhere:
-	// 1. Ensure your router forwards external traffic on the chosen port (e.g. 8888) to this machine's local IP.
-	// 2. Allow incoming connections on this port in your firewall (System Preferences > Security > Firewall).
-	// 3. Access from outside: http://<your-public-ip>:8888
-	// 4. For production, use HTTPS and a reverse proxy (Nginx, Caddy, etc).
-	// ---
-
-	if err := http.ListenAndServe(addr, server.mux); err != nil {
+	if err != nil {
 		log.Fatal(err)
 	}
-}
-
-func getLocalIPs() ([]string, error) {
-	var ips []string
-	addrs, err := net.InterfaceAddrs()
-	if err != nil {
-		return nil, err
-	}
-	for _, addr := range addrs {
-		if ipnet, ok := addr.(*net.IPNet); ok && !ipnet.IP.IsLoopback() && ipnet.IP.To4() != nil {
-			ips = append(ips, ipnet.IP.String())
-		}
-	}
-
-	return ips, nil
 }
 
 func NewServer() *Server {
@@ -84,6 +47,9 @@ func NewServer() *Server {
 	s.mux.HandleFunc("/api/scan", corsMiddleware(s.handleScanareBilet))
 	// s.mux.HandleFunc("/api/log", corsMiddleware(s.handleLog))
 	// s.mux.HandleFunc("/api/clear-cache", corsMiddleware(s.handleClearCache))
+	s.mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("OK"))
+	})
 
 	return s
 }
@@ -273,16 +239,13 @@ func (s *Server) handleScanareBilet(w http.ResponseWriter, r *http.Request) {
 
 func respondWithJSON(w http.ResponseWriter, data any) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(data)
+	encoder := json.NewEncoder(w)
+	encoder.SetIndent("", "  ")
+	encoder.Encode(data)
 }
 
 func respondWithError(w http.ResponseWriter, message string, status int, source string) {
-	switch strings.ToLower(source) {
-	case "fe":
-		logging.ErrorFe(message, "")
-	default:
-		logging.ErrorBe(message)
-	}
+	logging.Error(source, errors.New(message), "")
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)

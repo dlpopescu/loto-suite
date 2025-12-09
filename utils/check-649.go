@@ -10,7 +10,7 @@ import (
 func CheckBilet649(checkResult *models.CheckResult) {
 	game, _ := GetGameById("649")
 	VerificareNoroc649(checkResult.LuckyNumber, checkResult.DrawResult.LuckyNumber, game.LuckyNumberDigitCount, game.LuckyNumberMinMatchLen)
-	varianteJucateLen := len(checkResult.Numbers)
+	varianteJucateLen := len(checkResult.VarianteJucate)
 
 	if varianteJucateLen == 0 {
 		variantaJucata := models.Variant{
@@ -19,22 +19,24 @@ func CheckBilet649(checkResult *models.CheckResult) {
 			WinsSpecial: getDefaultCategoriiCastigVariante649(),
 		}
 
-		checkResult.Numbers = append(checkResult.Numbers, variantaJucata)
+		checkResult.VarianteJucate = append(checkResult.VarianteJucate, variantaJucata)
 	} else {
-		for i := range checkResult.Numbers {
+		for i := range checkResult.VarianteJucate {
 			// Reset Castigator flags once before verification
-			for j := range checkResult.Numbers[i].Numbers {
-				checkResult.Numbers[i].Numbers[j].IsWinner = false
+			for j := range checkResult.VarianteJucate[i].Numbers {
+				checkResult.VarianteJucate[i].Numbers[j].IsWinner = false
 			}
 
-			VerificareVarianta649(&checkResult.Numbers[i], checkResult.DrawResult.VariantRegular, game.VariantMinNumbersCount, game.VariantDrawNumbersCount)
-			VerificareVarianta649(&checkResult.Numbers[i], checkResult.DrawResult.VariantSpecial, game.VariantMinNumbersCount, game.VariantDrawNumbersCount)
+			VerificareVarianta649(&checkResult.VarianteJucate[i], checkResult.DrawResult.VariantRegular, game.VariantMinNumbersCount, game.VariantDrawNumbersCount)
+			VerificareVarianta649(&checkResult.VarianteJucate[i], checkResult.DrawResult.VariantSpecial, game.VariantMinNumbersCount, game.VariantDrawNumbersCount)
 		}
 	}
 }
 
 func VerificareVarianta649(variantaJucata *models.Variant, variantaExtrasa *models.Variant, minNumerePerVariantaJucata int, numerePerVariantaExtrasa int) {
-	// Don't reset Castigator flags - they might have been set by previous verification calls
+	if variantaJucata == nil || variantaExtrasa == nil {
+		return
+	}
 
 	isValidTicket := len(variantaJucata.Numbers) >= minNumerePerVariantaJucata
 	isValidDraw := variantaExtrasa.Id != -1 && len(variantaExtrasa.Numbers) == numerePerVariantaExtrasa

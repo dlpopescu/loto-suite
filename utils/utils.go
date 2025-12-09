@@ -23,7 +23,7 @@ func doHttpRequest(ctx context.Context, method string, url string, customHeaders
 	req, err := http.NewRequestWithContext(ctx, method, url, strings.NewReader(bodyEncoded))
 	if err != nil {
 		err := fmt.Errorf("failed to %s: %v", method, err)
-		logging.ErrorBe(err.Error())
+		logging.Error("be", err, "")
 
 		return nil, err
 	}
@@ -47,13 +47,13 @@ func doHttpRequest(ctx context.Context, method string, url string, customHeaders
 
 	logJson, err := json.Marshal(logData)
 	if err == nil {
-		logging.DebugBe(fmt.Sprintf("HTTP Request: %s", string(logJson)))
+		logging.Debug("BE", fmt.Sprintf("HTTP Request: %s", string(logJson)))
 	}
 
 	resp, err := httpClient.Do(req)
 	if err != nil {
 		err := fmt.Errorf("failed to %s: %v", method, err)
-		logging.ErrorBe(err.Error())
+		logging.Error("be", err, "")
 
 		return nil, err
 	}
@@ -99,8 +99,8 @@ func GetDrawDates(daysBack int) []models.DrawDate {
 		}
 
 		dates = append(dates, models.DrawDate{
-			Value:        value,
-			DisplayLabel: fmt.Sprintf("%s - %s", d.Format(generics.DateDisplayFormat), zi),
+			Date:  value,
+			Label: fmt.Sprintf("%s - %s", d.Format(generics.DateDisplayFormat), zi),
 		})
 	}
 
