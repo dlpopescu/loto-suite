@@ -52,15 +52,15 @@ func NewServer() *Server {
 		mux: http.NewServeMux(),
 	}
 
-	s.mux.HandleFunc("/api/games", corsMiddleware(s.handleGetGames))
-	s.mux.HandleFunc("/api/draw-dates", corsMiddleware(s.handleGetDrawDates))
-	s.mux.HandleFunc("/api/draw-results", corsMiddleware(s.handleGetDrawResults))
-	s.mux.HandleFunc("/api/check", corsMiddleware(s.handleVerificareBilet))
-	s.mux.HandleFunc("/api/scan", corsMiddleware(s.handleScanareBilet))
-	s.mux.HandleFunc("/api/logs", corsMiddleware(s.handleDownloadLogs))
+	s.mux.HandleFunc("GET /api/games", corsMiddleware(s.handleGetGames))
+	s.mux.HandleFunc("GET /api/draw-dates", corsMiddleware(s.handleGetDrawDates))
+	s.mux.HandleFunc("GET /api/draw-results", corsMiddleware(s.handleGetDrawResults))
+	s.mux.HandleFunc("POST /api/check", corsMiddleware(s.handleVerificareBilet))
+	s.mux.HandleFunc("POST /api/scan", corsMiddleware(s.handleScanareBilet))
+	s.mux.HandleFunc("GET /api/logs", corsMiddleware(s.handleDownloadLogs))
 	// s.mux.HandleFunc("/api/log", corsMiddleware(s.handleLog))
 	// s.mux.HandleFunc("/api/clear-cache", corsMiddleware(s.handleClearCache))
-	s.mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+	s.mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("OK"))
 	})
 
@@ -116,6 +116,11 @@ func (s *Server) handleGetDrawResults(w http.ResponseWriter, r *http.Request) {
 	queryGameId := strings.TrimSpace(r.URL.Query().Get("game"))
 	queryDateStr := strings.TrimSpace(r.URL.Query().Get("date"))
 
+	useCache := false
+	if r.URL.Query().Has("use_cache") {
+		useCache = true
+	}
+
 	if queryGameId == "" || queryDateStr == "" {
 		respondWithError(w, r, "missing game or date parameter", http.StatusBadRequest, "fe")
 		return
@@ -130,17 +135,7 @@ func (s *Server) handleGetDrawResults(w http.ResponseWriter, r *http.Request) {
 	month := strconv.Itoa(int(queryDate.Month()))
 	year := strconv.Itoa(queryDate.Year())
 
-	var body struct {
-		UseCache bool `json:"use_cache,omitempty"`
-	}
-
-	err = json.NewDecoder(r.Body).Decode(&body)
-	if err != nil && err != io.EOF {
-		respondWithError(w, r, "invalid request body", http.StatusBadRequest, "fe")
-		return
-	}
-
-	drawResults, err := utils.GetDrawResults(queryGameId, month, year, body.UseCache)
+	drawResults, err := utils.GetDrawResults(queryGameId, month, year, useCache)
 	if err != nil {
 		respondWithError(w, r, err.Error(), http.StatusInternalServerError, "be")
 		return
@@ -151,20 +146,10 @@ func (s *Server) handleGetDrawResults(w http.ResponseWriter, r *http.Request) {
 		return err == nil && date.Equal(queryDate)
 	})
 
-	if result.GameId != "" {
-		respondWithJSON(w, r, result)
-		return
-	}
-
-	respondWithError(w, r, "nu am gasit rezultate pentru data selectata", http.StatusNotFound, "fe")
+	respondWithJSON(w, r, result)
 }
 
 func (s *Server) handleVerificareBilet(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		respondWithError(w, r, "method not allowed", http.StatusMethodNotAllowed, "fe")
-		return
-	}
-
 	req := models.CheckRequest{}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -184,11 +169,6 @@ func (s *Server) handleVerificareBilet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleScanareBilet(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		respondWithError(w, r, "method not allowed", http.StatusMethodNotAllowed, "fe")
-		return
-	}
-
 	var req struct {
 		GameId    string `json:"game_id"`
 		ImageData string `json:"image_data"` // Base64 encoded
@@ -215,11 +195,6 @@ func (s *Server) handleScanareBilet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleDownloadLogs(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		respondWithError(w, r, "method not allowed", http.StatusMethodNotAllowed, "be")
-		return
-	}
-
 	queryDateStr := strings.TrimSpace(r.URL.Query().Get("date"))
 	if queryDateStr == "" {
 		queryDateStr = time.Now().Format(generics.GoDateFormat)
