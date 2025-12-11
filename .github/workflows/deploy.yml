@@ -38,5 +38,3 @@ jobs:
             EC2_KEY=~/.ssh/loto-backend.pem \
             EC2_USER=$EC2_USER \
             EC2_IP=$EC2_IP
-          
-          echo "✅ Deployment complete!"
